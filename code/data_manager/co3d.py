@@ -54,8 +54,8 @@ class CO3DDataset():
             if not os.path.isdir(data_path):
                 os.mkdir(data_path)
             print("building dataset from scratch at {}".format(data_path))
-            self.create_dataset(cfg, data_path, "train")
-            self.create_dataset(cfg, data_path, "val")
+            # self.create_dataset(cfg, data_path, "train")
+            # self.create_dataset(cfg, data_path, "val")
             self.create_dataset(cfg, data_path, "test")
             return 0
 

@@ -1,4 +1,4 @@
-from camera import look_at_to_world_to_camera, get_viewpoint, augment_cameras
+from ..camera import look_at_to_world_to_camera, get_viewpoint, augment_cameras
 from .co3d_exclude_sequences import (
     EXCLUDE_SEQUENCE, 
     LOW_QUALITY_SEQUENCE, 

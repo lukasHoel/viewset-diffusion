@@ -14,7 +14,7 @@ from . import Reconstructor
 from . import ViewsetDiffusion
 from . import get_data_manager
 
-from denoising_diffusion_pytorch.denoising_diffusion_pytorch import num_to_groups
+from ..denoising_diffusion_pytorch.denoising_diffusion_pytorch import num_to_groups
 
 class Generator():
     """ 

@@ -1,9 +1,10 @@
-from denoising_diffusion_pytorch import GaussianDiffusion
-from denoising_diffusion_pytorch.denoising_diffusion_pytorch import default, reduce, extract
-from denoising_diffusion_pytorch.denoising_diffusion_pytorch import identity
+from ..denoising_diffusion_pytorch import GaussianDiffusion
+from ..denoising_diffusion_pytorch.denoising_diffusion_pytorch import default, reduce, extract
+from ..denoising_diffusion_pytorch.denoising_diffusion_pytorch import identity
 
 from . import get_Ts_and_Rs_loop
 
+import os
 import torch
 import numpy as np
 
@@ -11,7 +12,9 @@ from collections import namedtuple
 from functools import partial
 import tqdm
 
-import wandb
+from PIL import Image
+
+from ..io_utils import pmgr
 
 # adapted from https://github.com/lucidrains/denoising-diffusion-pytorch/blob/main/denoising_diffusion_pytorch/denoising_diffusion_pytorch.py#L97
 ModelPrediction =  namedtuple('ModelPrediction', ['pred_noise', 'pred_x_start'])
@@ -191,7 +194,7 @@ class ViewsetDiffusion(GaussianDiffusion):
         return ModelPrediction(pred_noise, x_start)        
     
     @torch.no_grad()
-    def vis_iteration(self, x_start, t, cond, noise = None, iteration = None,
+    def vis_iteration(self, x_start, t, cond, noise = None, iteration = None, output_dir = None,
                       split = 'training'):
         
         # for every pass through the model we want to show the inputs, outputs
@@ -266,8 +269,13 @@ class ViewsetDiffusion(GaussianDiffusion):
             rows.append(r_sil_out[0, img_idx, ...].expand(h, w, 3).cpu()) 
         vis_columns.append(torch.vstack(rows))
 
-        im_log = wandb.Image(np.clip(torch.hstack(vis_columns).numpy(), 0.0, 1.0), caption="Vis")
-        wandb.log({"{}_vis".format(split): im_log}, step=iteration)
+        im_log = np.clip(torch.hstack(vis_columns).numpy(), 0.0, 1.0)
+
+        if output_dir is not None:
+            im_log = (im_log * 255).astype(np.uint8)
+            im_log = Image.fromarray(im_log)
+            with pmgr.open(os.path.join(output_dir, f"{split}_{iteration}_vis.png"), "wb") as f:
+                im_log.save(f)
     
     @torch.no_grad()
     def ddim_sample(self, shape, cond, return_all_timesteps = False,

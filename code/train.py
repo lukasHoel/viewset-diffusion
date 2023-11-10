@@ -20,27 +20,24 @@ from model.diffusion import ViewsetDiffusion
 
 from utils import set_seed
 
-import wandb
 from omegaconf import DictConfig, OmegaConf
 import hydra
 
-from denoising_diffusion_pytorch.denoising_diffusion_pytorch import num_to_groups
+from .denoising_diffusion_pytorch.denoising_diffusion_pytorch import num_to_groups
 
 from ema_pytorch import EMA
 
 import os
 os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "max_split_size_mb:512"
 
+from .io_utils import pmgr
+
+from PIL import Image
+
+
 class Lite(LightningLite):
     def run(self, cfg):
-        vis_dir = os.getcwd()
-
-        dict_cfg = OmegaConf.to_container(
-            cfg, resolve=True, throw_on_missing=True
-        )
-
-        wandb_run = wandb.init(project=cfg.wandb.project, reinit=True,
-                    config=dict_cfg,group="decoder_debug")
+        vis_dir = cfg.output_dir
 
         set_seed(cfg.general.random_seed)
 
@@ -64,7 +61,8 @@ class Lite(LightningLite):
         if cfg.optimization.continue_from_checkpoint != 'none':
             print('Loading a pretrained model from ', 
                   cfg.optimization.continue_from_checkpoint)
-            checkpoint = self.load(os.path.join(cfg.optimization.continue_from_checkpoint,
+            local_checkpoint = pmgr.get_local_path(cfg.optimization.continue_from_checkpoint)
+            checkpoint = self.load(os.path.join(local_checkpoint,
                                                 "model.pth")) 
             pretrained_dict = {}
             non_loaded_keys = []
@@ -167,14 +165,17 @@ class Lite(LightningLite):
 
                 if self.is_global_zero and (iteration + 1) % 10 == 0:
                     if len(losses) == 2:
-                        wandb.log({"loss_unseen": np.log(losses[0].item() + 1e-8)}, step=iteration)
-                        wandb.log({"loss_seen": np.log(losses[1].item() +1e-8)}, step=iteration)
-                    
-                    wandb.log({"total_loss": np.log(total_loss.item())}, step=iteration)
+                        loss_unseen = np.log(losses[0].item() + 1e-8)
+                        loss_seen = np.log(losses[1].item() +1e-8)
+                        print("loss_unseen", loss_unseen)
+                        print("loss_seen", loss_seen)
 
-                    wandb.log({"val_loss": np.log(val_loss.item())}, step=iteration)
+                    total_loss = np.log(total_loss.item())
+                    val_loss =  np.log(val_loss.item())
+                    print("total_loss", total_loss)
+                    print("val_loss", val_loss)
 
-                if iteration % (cfg.optimization.n_iter // 10) == 0 and self.is_global_zero:
+                if (iteration == 0 or iteration % (cfg.optimization.n_iter // 10) == 0) and self.is_global_zero:
                     try:
                         val_data = next(val_dataloader_iterator)
                     except StopIteration:
@@ -192,20 +193,26 @@ class Lite(LightningLite):
                     noisy_input = self.to_device(noisy_input)
                     log_visualisations(diffuser, data, noisy_input, iteration, cfg, split="training")
 
-                if (iteration+1) % cfg.optimization.save_every == 0:
+                if (iteration+1) % cfg.optimization.save_every == 0 or iteration == 0:
                     diffuser.eval()
-                    if cfg.optimization.ema.use and self.is_global_zero:
-                        print('Saving ema model')
-                        torch.save({"diffuser": ema.ema_model.state_dict(),
-                                "optimizer": optimizer.state_dict(),
-                                "iteration": iteration},
-                                os.path.join(vis_dir, "model.pth"))
-                    else:
-                        self.print('Saving non-ema model')
-                        self.save({"diffuser": diffuser.state_dict(),
-                                "optimizer": optimizer.state_dict(),
-                                "iteration": iteration},
-                                os.path.join(vis_dir, "model.pth"))
+                    output_path = os.path.join(cfg.output_dir, "model.pth")
+                    local_output_path = pmgr.get_local_path(output_path)
+                    with pmgr.open(local_output_path, "wb") as f:
+                        if cfg.optimization.ema.use and self.is_global_zero:
+                            print('Saving ema model')
+
+                            torch.save({"diffuser": ema.ema_model.state_dict(),
+                                    "optimizer": optimizer.state_dict(),
+                                    "iteration": iteration},
+                                    f)
+                        else:
+                            self.print('Saving non-ema model')
+                            self.save({"diffuser": diffuser.state_dict(),
+                                    "optimizer": optimizer.state_dict(),
+                                    "iteration": iteration},
+                                    f)
+                    if str(local_output_path) != str(output_path):
+                        pmgr.copy_from_local(local_output_path, output_path)
                     self.print("Saved model at iteration {}".format(iteration))
                     diffuser.train()                
 
@@ -219,21 +226,23 @@ class Lite(LightningLite):
 
                 if (iteration+1) % interval == 0 and iteration >= cutoff_iteration:
                     diffuser.eval()
-                    if cfg.optimization.ema.use and self.is_global_zero:
-                        print('Saving ema model')
-                        torch.save({"diffuser": ema.ema_model.state_dict(),
+                    output_path = os.path.join(cfg.output_dir, "model_{}.pth".format(iteration + 1))
+                    local_output_path = pmgr.get_local_path(output_path)
+                    with pmgr.open(local_output_path, "wb") as f:
+                        if cfg.optimization.ema.use and self.is_global_zero:
+                            print('Saving ema model')
+                            torch.save({"diffuser": ema.ema_model.state_dict(),
+                                        "iteration": iteration},
+                                        f)
+                        else:
+                            self.print('Saving non-ema model')
+                            self.save({"diffuser": diffuser.state_dict(),
                                     "iteration": iteration},
-                                os.path.join(vis_dir, 
-                                             "model_{}.pth".format(iteration + 1)))
-                    else:
-                        self.print('Saving non-ema model')
-                        self.save({"diffuser": diffuser.state_dict(),
-                                "iteration": iteration},
-                                os.path.join(vis_dir, 
-                                             "model_{}.pth".format(iteration + 1)))
+                                    f)
+                    if str(local_output_path) != str(output_path):
+                        pmgr.copy_from_local(local_output_path, output_path)
                     diffuser.train()
 
-        wandb_run.finish()
 
 def log_visualisations(diffuser, data, noisy_input, iteration, cfg,
                        split):
@@ -241,7 +250,15 @@ def log_visualisations(diffuser, data, noisy_input, iteration, cfg,
                         noisy_input,
                         data, 
                         iteration = iteration,
+                        output_dir=cfg.output_dir,
                         split=split)
+
+    def save_image(image, out_path: str):
+        print("try to save", image.shape, image.min(), image.max())
+        image = (image.permute(1, 2, 0) * 255).cpu().numpy().astype(np.uint8)
+        image = Image.fromarray(image)
+        with pmgr.open(out_path, "wb") as f:
+            image.save(f)
 
     vis_batch_size = 4
     n_rows = int(np.sqrt(vis_batch_size))
@@ -281,9 +298,8 @@ def log_visualisations(diffuser, data, noisy_input, iteration, cfg,
                     )
                 rows = [torch.hstack([im for im in sample_row]) for sample_row in cond_view_result]
                 cond_view_result = torch.vstack(rows).permute(2, 0, 1)
-                wandb.log({"cond_view_{}_{}".format(cond_view_idx, split): 
-                            wandb.Image(cond_view_result)},
-                            step=iteration)
+
+                save_image(image=cond_view_result, out_path=os.path.join(cfg.output_dir, "cond_view_{}_{}_{}.png".format(cond_view_idx, split, iteration)))
                 
                 cond_view_gt = all_gt[:, cond_view_idx].permute(0, 2, 3, 1)
                 cond_view_gt = cond_view_gt.reshape(
@@ -291,9 +307,7 @@ def log_visualisations(diffuser, data, noisy_input, iteration, cfg,
                     )
                 rows = [torch.hstack([im for im in sample_row]) for sample_row in cond_view_gt]
                 cond_view_gt = torch.vstack(rows).permute(2, 0, 1)
-                wandb.log({"cond_gt_{}_{}".format(cond_view_idx, split):
-                            wandb.Image(cond_view_gt)},
-                            step=iteration)
+                save_image(image=cond_view_gt, out_path=os.path.join(cfg.output_dir, "cond_gt_{}_{}_{}.png".format(cond_view_idx, split, iteration)))
 
         for diffused_view_idx in range(data["x_in"].shape[1]):
             diffused_view_result = all_images[:, diffused_views_start + diffused_view_idx].permute(0, 2, 3, 1)
@@ -302,27 +316,15 @@ def log_visualisations(diffuser, data, noisy_input, iteration, cfg,
                     )
             rows = [torch.hstack([im for im in sample_row]) for sample_row in diffused_view_result]
             diffused_view_result = torch.vstack(rows).permute(2, 0, 1)
-            print(diffused_view_result.shape)
-            wandb.log({"diffused_view_{}_{}_{}".format(diffused_view_idx, cf_guidance_weight, split): 
-                        wandb.Image(diffused_view_result)},
-                        step=iteration)
-        
-        grids = []
-        for rot_idx in range(diffused_views_start+data["x_in"].shape[1], all_images.shape[1]):
-            samples_this_angle = resizing(all_images[:, rot_idx, ...]).permute(0, 2, 3, 1)
-            samples_this_angle = samples_this_angle.reshape(n_rows, n_rows, *samples_this_angle.shape[1:])
-            rows = [torch.hstack([im for im in sample_row]) for sample_row in samples_this_angle]
-            grid = torch.vstack(rows)
-            grids.append((np.clip(grid.permute(2, 0, 1).detach().cpu().numpy(), 0, 1)*255).astype(np.uint8))
-        
-        wandb.log({"rot_{}_{}".format(cf_guidance_weight, split):
-                   wandb.Video(np.asarray(grids), fps=4, format="gif")},
-                   step=iteration)
+            save_image(image=diffused_view_result, out_path=os.path.join(cfg.output_dir, "diffused_view_{}_{}_{}_{}.png".format(diffused_view_idx, cf_guidance_weight, split, iteration)))
 
     diffuser.train()
+
 
 @hydra.main(version_base=None, config_path='configs', config_name="default_config")
 def main(cfg: DictConfig):
     Lite(strategy="ddp", devices=cfg.general.devices, accelerator="gpu").run(cfg)
+
+
 if __name__=="__main__":
     main()

@@ -2,4 +2,5 @@
 __pycache__/
 outputs/
 wandb/
-!configs/wandb
+!code/configs/wandb
+experiments_out/

@@ -1,6 +1,6 @@
 import argparse
 import sys
-from evaluation.generator import Generator
+from .evaluation.generator import Generator
 
 import torch
 
