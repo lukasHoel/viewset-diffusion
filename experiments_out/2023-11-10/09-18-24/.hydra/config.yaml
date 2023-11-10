@@ -1,0 +1,104 @@
+wandb:
+  project: mine
+  model: online
+general:
+  random_seed: 0
+  devices: 1
+data:
+  background: white
+  encode_pose: true
+  encode_rays: true
+  translation_augmentation: 0.0
+  rotation_augmentation: true
+  always_drop_at_least_one_view: true
+  two_training_imgs_per_example: false
+  one_training_img_per_example: false
+  dataset_type: co3d
+  data_path: /home/hoellein/git/viewset-diffusion/outputs/co3d
+  input_size:
+  - 128
+  - 128
+  category: hydrant
+  sequence_idx: None
+  white_background: false
+eval:
+  save_every: 2000
+  sampling_timesteps: 250
+model:
+  hidden_dim: 64
+  n_heads: 1
+  diffuser:
+    steps: 1000
+    beta_schedule: cosine
+  feature_extractor_2d:
+    pass_features: both
+    use: true
+    res_blocks: 2
+  input_dim: 9
+  volume_size: 32
+  explicit_volume: true
+  explicit_rendering: true
+  unet:
+    volume_repr: voxel
+    self_condition: true
+    self_condition_images: seen
+    self_condition_detach: true
+    input_dim: 64
+    model_channels: 64
+    attention_aggregation: true
+    blocks_per_res: 2
+    channel_mult:
+    - 1
+    - 2
+    - 4
+    - 8
+    attn_resolutions:
+    - 16
+    - 8
+    - 4
+optimization:
+  batch_size: 8
+  betas:
+  - 0.9
+  - 0.99
+  lr: 2.0e-05
+  n_iter: 300001
+  loss: l2
+  weigh_terms: true
+  weigh_clean: true
+  save_every: 2000
+  continue_from_checkpoint: none
+  keep_clean_only_proportion: 0.0
+  ema:
+    use: true
+    update_every: 10
+    decay: 0.995
+  accumulate_grad_steps: 1
+  clamp_min_snr: true
+  hard_mining_proportion: 0.9
+  noisy_dropout_proportion: 0.5
+  penalize: seen_and_one_more
+  weigh_loss_unseen: 0.1
+  normalize_unseen_to_a_third: true
+render:
+  aspect_ratio: 1
+  fov: 15.0
+  max_depth: 7.5
+  min_depth: 0.0001
+  n_pts_per_ray: 96
+  stratified_sampling: true
+  volume_extent_world: 1.2
+  volume_size: 32
+  zfar: 10.0
+  znear: 0.1
+  post_activation: true
+  raw_noise_std: 0.0
+  n_pts_per_ray_fine: 32
+  volume_size_mults:
+  - 1.0
+  - 1.0
+  - 1.0
+  volume_offsets:
+  - 0.0
+  - 0.0
+  - 0.0

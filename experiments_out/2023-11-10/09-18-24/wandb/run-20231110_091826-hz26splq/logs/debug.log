@@ -1,0 +1,27 @@
+2023-11-10 09:18:26,600 INFO    MainThread:3451439 [wandb_setup.py:_flush():76] Configure stats pid to 3451439
+2023-11-10 09:18:26,601 INFO    MainThread:3451439 [wandb_setup.py:_flush():76] Loading settings from /home/hoellein/.config/wandb/settings
+2023-11-10 09:18:26,601 INFO    MainThread:3451439 [wandb_setup.py:_flush():76] Loading settings from /home/hoellein/git/viewset-diffusion/experiments_out/2023-11-10/09-18-24/wandb/settings
+2023-11-10 09:18:26,601 INFO    MainThread:3451439 [wandb_setup.py:_flush():76] Loading settings from environment variables: {}
+2023-11-10 09:18:26,601 INFO    MainThread:3451439 [wandb_setup.py:_flush():76] Applying setup settings: {'_disable_service': False}
+2023-11-10 09:18:26,601 WARNING MainThread:3451439 [wandb_setup.py:_flush():76] Could not find program at train.py
+2023-11-10 09:18:26,601 INFO    MainThread:3451439 [wandb_setup.py:_flush():76] Inferring run settings from compute environment: {'program_relpath': None, 'program': 'train.py'}
+2023-11-10 09:18:26,601 INFO    MainThread:3451439 [wandb_init.py:_log_setup():506] Logging user logs to /home/hoellein/git/viewset-diffusion/experiments_out/2023-11-10/09-18-24/wandb/run-20231110_091826-hz26splq/logs/debug.log
+2023-11-10 09:18:26,601 INFO    MainThread:3451439 [wandb_init.py:_log_setup():507] Logging internal logs to /home/hoellein/git/viewset-diffusion/experiments_out/2023-11-10/09-18-24/wandb/run-20231110_091826-hz26splq/logs/debug-internal.log
+2023-11-10 09:18:26,602 INFO    MainThread:3451439 [wandb_init.py:init():546] calling init triggers
+2023-11-10 09:18:26,602 INFO    MainThread:3451439 [wandb_init.py:init():552] wandb.init called with sweep_config: {}
+config: {'wandb': {'project': 'mine', 'model': 'online'}, 'general': {'random_seed': 0, 'devices': 1}, 'data': {'background': 'white', 'encode_pose': True, 'encode_rays': True, 'translation_augmentation': 0.0, 'rotation_augmentation': True, 'always_drop_at_least_one_view': True, 'two_training_imgs_per_example': False, 'one_training_img_per_example': False, 'dataset_type': 'co3d', 'data_path': '/home/hoellein/git/viewset-diffusion/outputs/co3d', 'input_size': [128, 128], 'category': 'hydrant', 'sequence_idx': 'None', 'white_background': False}, 'eval': {'save_every': 2000, 'sampling_timesteps': 250}, 'model': {'hidden_dim': 64, 'n_heads': 1, 'diffuser': {'steps': 1000, 'beta_schedule': 'cosine'}, 'feature_extractor_2d': {'pass_features': 'both', 'use': True, 'res_blocks': 2}, 'input_dim': 9, 'volume_size': 32, 'explicit_volume': True, 'explicit_rendering': True, 'unet': {'volume_repr': 'voxel', 'self_condition': True, 'self_condition_images': 'seen', 'self_condition_detach': True, 'input_dim': 64, 'model_channels': 64, 'attention_aggregation': True, 'blocks_per_res': 2, 'channel_mult': [1, 2, 4, 8], 'attn_resolutions': [16, 8, 4]}}, 'optimization': {'batch_size': 8, 'betas': [0.9, 0.99], 'lr': 2e-05, 'n_iter': 300001, 'loss': 'l2', 'weigh_terms': True, 'weigh_clean': True, 'save_every': 2000, 'continue_from_checkpoint': 'none', 'keep_clean_only_proportion': 0.0, 'ema': {'use': True, 'update_every': 10, 'decay': 0.995}, 'accumulate_grad_steps': 1, 'clamp_min_snr': True, 'hard_mining_proportion': 0.9, 'noisy_dropout_proportion': 0.5, 'penalize': 'seen_and_one_more', 'weigh_loss_unseen': 0.1, 'normalize_unseen_to_a_third': True}, 'render': {'aspect_ratio': 1, 'fov': 15.0, 'max_depth': 7.5, 'min_depth': 0.0001, 'n_pts_per_ray': 96, 'stratified_sampling': True, 'volume_extent_world': 1.2, 'volume_size': 32, 'zfar': 10.0, 'znear': 0.1, 'post_activation': True, 'raw_noise_std': 0.0, 'n_pts_per_ray_fine': 32, 'volume_size_mults': [1.0, 1.0, 1.0], 'volume_offsets': [0.0, 0.0, 0.0]}}
+2023-11-10 09:18:26,602 INFO    MainThread:3451439 [wandb_init.py:init():602] starting backend
+2023-11-10 09:18:26,602 INFO    MainThread:3451439 [wandb_init.py:init():606] setting up manager
+2023-11-10 09:18:26,606 INFO    MainThread:3451439 [backend.py:_multiprocessing_setup():106] multiprocessing start_methods=fork,spawn,forkserver, using: spawn
+2023-11-10 09:18:26,609 INFO    MainThread:3451439 [wandb_init.py:init():613] backend started and connected
+2023-11-10 09:18:26,614 INFO    MainThread:3451439 [wandb_init.py:init():701] updated telemetry
+2023-11-10 09:18:26,626 INFO    MainThread:3451439 [wandb_init.py:init():741] communicating run to backend with 60.0 second timeout
+2023-11-10 09:18:27,195 INFO    MainThread:3451439 [wandb_run.py:_on_init():2133] communicating current version
+2023-11-10 09:18:27,278 INFO    MainThread:3451439 [wandb_run.py:_on_init():2142] got version response upgrade_message: "wandb version 0.16.0 is available!  To upgrade, please run:\n $ pip install wandb --upgrade"
+
+2023-11-10 09:18:27,278 INFO    MainThread:3451439 [wandb_init.py:init():789] starting run threads in backend
+2023-11-10 09:18:34,950 INFO    MainThread:3451439 [wandb_run.py:_console_start():2114] atexit reg
+2023-11-10 09:18:34,950 INFO    MainThread:3451439 [wandb_run.py:_redirect():1969] redirect: SettingsConsole.WRAP_RAW
+2023-11-10 09:18:34,951 INFO    MainThread:3451439 [wandb_run.py:_redirect():2034] Wrapping output streams.
+2023-11-10 09:18:34,951 INFO    MainThread:3451439 [wandb_run.py:_redirect():2059] Redirects installed.
+2023-11-10 09:18:34,951 INFO    MainThread:3451439 [wandb_init.py:init():831] run started, returning control to user process

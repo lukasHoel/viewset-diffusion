@@ -1,0 +1,3 @@
+- +experiment=diffusion_128
+- +arch=up_3d_conv
+- +dataset=co3d_hydrant

@@ -6,7 +6,7 @@ from .co3d_exclude_sequences import (
     CAMERAS_FAR_AWAY_SEQUENCE
 )
 from .co3d_normalisation import normalize_sequence
-from .minens import QuadrupleDataset
-from .srn import SRNDataset
+# from .minens import QuadrupleDataset
+# from .srn import SRNDataset
 from .co3d import CO3DDataset
 from .data_manager_factory import get_data_manager

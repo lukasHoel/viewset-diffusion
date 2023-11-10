@@ -20,7 +20,7 @@ from . import augment_cameras, normalize_sequence
 from pytorch3d.implicitron.dataset.json_index_dataset_map_provider_v2 import JsonIndexDatasetMapProviderV2
 from pytorch3d.implicitron.tools.config import expand_args_fields
 
-CO3D_DATASET_ROOT = None # Change this line to where CO3D is downloaded
+CO3D_DATASET_ROOT = "/cluster/balar/lhoellein/co3d" # Change this line to where CO3D is downloaded
 assert CO3D_DATASET_ROOT != None, "Please change CO3D path"
 
 class CO3DDataset():

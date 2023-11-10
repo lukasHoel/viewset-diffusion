@@ -1,0 +1,79 @@
+Instantiated
+No model found in /home/hoellein/git/viewset-diffusion/experiments_out/2023-11-10/09-18-24/model.pth, training from scratch
+Model loaded.
+Setting up ddp
+Setting up ema
+EMA set up.
+building dataset from scratch at /home/hoellein/git/viewset-diffusion/outputs/co3d/hydrant
+[2023-11-10 09:18:36,708][pytorch3d.implicitron.dataset.json_index_dataset][INFO] - Loading Co3D frames from /home/hoellein/datasets/co3d/hydrant/frame_annotations.jgz.
+[2023-11-10 09:18:43,817][pytorch3d.implicitron.dataset.json_index_dataset][INFO] - Loading Co3D sequences from /home/hoellein/datasets/co3d/hydrant/sequence_annotations.jgz.
+[2023-11-10 09:18:43,821][pytorch3d.implicitron.dataset.json_index_dataset][INFO] - Loading Co3D subset lists from .
+[2023-11-10 09:18:43,875][pytorch3d.implicitron.dataset.json_index_dataset][INFO] - JsonIndexDataset #frames=135878
+[2023-11-10 09:18:43,876][pytorch3d.implicitron.dataset.json_index_dataset_map_provider_v2][INFO] - Loading frame index json from /home/hoellein/datasets/co3d/hydrant/set_lists/set_lists_fewview_dev.json.
+[2023-11-10 09:18:43,914][pytorch3d.implicitron.dataset.json_index_dataset_map_provider_v2][INFO] - Loading frame index json from /home/hoellein/datasets/co3d/hydrant/eval_batches/eval_batches_fewview_dev.json.
+[2023-11-10 09:18:49,647][pytorch3d.implicitron.dataset.json_index_dataset_map_provider_v2][INFO] - Train dataset: JsonIndexDataset #frames=63226
+[2023-11-10 09:18:50,462][pytorch3d.implicitron.dataset.json_index_dataset_map_provider_v2][INFO] - Val dataset: JsonIndexDataset #frames=10072
+[2023-11-10 09:18:51,279][pytorch3d.implicitron.dataset.json_index_dataset_map_provider_v2][INFO] - Test dataset: JsonIndexDataset #frames=10072
+[2023-11-10 09:18:51,287][pytorch3d.implicitron.dataset.json_index_dataset_map_provider_v2][INFO] - # eval batches: 52
+
+
+
+
+
+
+
+
+  1%|█▍                                                                                                     | 8/552 [02:16<2:34:41, 17.06s/it]
+Traceback (most recent call last):
+  File "/home/hoellein/git/viewset-diffusion/data_manager/co3d.py", line 52, in __init__
+    self.read_dataset(data_path, dataset_name)
+  File "/home/hoellein/git/viewset-diffusion/data_manager/co3d.py", line 229, in read_dataset
+    np.load(os.path.join(data_path, "images_{}.npz".format(dataset_name))).items()
+  File "/home/hoellein/anaconda3/envs/viewset_diffusion/lib/python3.8/site-packages/numpy/lib/npyio.py", line 405, in load
+    fid = stack.enter_context(open(os_fspath(file), "rb"))
+FileNotFoundError: [Errno 2] No such file or directory: '/home/hoellein/git/viewset-diffusion/outputs/co3d/hydrant/images_train.npz'
+During handling of the above exception, another exception occurred:
+Traceback (most recent call last):
+  File "train.py", line 328, in <module>
+    main()
+  File "/home/hoellein/anaconda3/envs/viewset_diffusion/lib/python3.8/site-packages/hydra/main.py", line 94, in decorated_main
+    _run_hydra(
+  File "/home/hoellein/anaconda3/envs/viewset_diffusion/lib/python3.8/site-packages/hydra/_internal/utils.py", line 394, in _run_hydra
+    _run_app(
+  File "/home/hoellein/anaconda3/envs/viewset_diffusion/lib/python3.8/site-packages/hydra/_internal/utils.py", line 457, in _run_app
+    run_and_report(
+  File "/home/hoellein/anaconda3/envs/viewset_diffusion/lib/python3.8/site-packages/hydra/_internal/utils.py", line 220, in run_and_report
+    return func()
+  File "/home/hoellein/anaconda3/envs/viewset_diffusion/lib/python3.8/site-packages/hydra/_internal/utils.py", line 458, in <lambda>
+    lambda: hydra.run(
+  File "/home/hoellein/anaconda3/envs/viewset_diffusion/lib/python3.8/site-packages/hydra/_internal/hydra.py", line 119, in run
+    ret = run_job(
+  File "/home/hoellein/anaconda3/envs/viewset_diffusion/lib/python3.8/site-packages/hydra/core/utils.py", line 186, in run_job
+    ret.return_value = task_function(task_cfg)
+  File "train.py", line 326, in main
+    Lite(strategy="ddp", devices=cfg.general.devices, accelerator="gpu").run(cfg)
+  File "/home/hoellein/anaconda3/envs/viewset_diffusion/lib/python3.8/site-packages/pytorch_lightning/lite/lite.py", line 404, in _run_impl
+    return self._strategy.launcher.launch(run_method, *args, **kwargs)
+  File "/home/hoellein/anaconda3/envs/viewset_diffusion/lib/python3.8/site-packages/pytorch_lightning/strategies/launchers/subprocess_script.py", line 93, in launch
+    return function(*args, **kwargs)
+  File "/home/hoellein/anaconda3/envs/viewset_diffusion/lib/python3.8/site-packages/pytorch_lightning/lite/lite.py", line 411, in _run_with_strategy_setup
+    return run_method(*args, **kwargs)
+  File "train.py", line 110, in run
+    dataset = get_data_manager(cfg)
+  File "/home/hoellein/git/viewset-diffusion/data_manager/data_manager_factory.py", line 38, in get_data_manager
+    dataset = CO3DDataset(cfg,
+  File "/home/hoellein/git/viewset-diffusion/data_manager/co3d.py", line 57, in __init__
+    self.create_dataset(cfg, data_path, "train")
+  File "/home/hoellein/git/viewset-diffusion/data_manager/co3d.py", line 160, in create_dataset
+    normalized_cameras, min_dist, max_dist, _, needs_checking = normalize_sequence(self.created_dataset, sequence_name,
+  File "/home/hoellein/git/viewset-diffusion/data_manager/co3d_normalisation.py", line 27, in normalize_sequence
+    cameras_start.append(dataset[frame_idx].camera)
+  File "/home/hoellein/anaconda3/envs/viewset_diffusion/lib/python3.8/site-packages/pytorch3d/implicitron/dataset/json_index_dataset.py", line 447, in __getitem__
+    ) = self._load_crop_fg_probability(entry)
+  File "/home/hoellein/anaconda3/envs/viewset_diffusion/lib/python3.8/site-packages/pytorch3d/implicitron/dataset/json_index_dataset.py", line 522, in _load_crop_fg_probability
+    bbox_xywh = torch.tensor(_get_bbox_from_mask(mask, self.box_crop_mask_thr))
+  File "/home/hoellein/anaconda3/envs/viewset_diffusion/lib/python3.8/site-packages/pytorch3d/implicitron/dataset/json_index_dataset.py", line 976, in _get_bbox_from_mask
+    while masks_for_box.sum() <= 1.0:
+  File "/home/hoellein/anaconda3/envs/viewset_diffusion/lib/python3.8/site-packages/numpy/core/_methods.py", line 48, in _sum
+    return umr_sum(a, axis, dtype, out, keepdims, initial, where)
+KeyboardInterrupt

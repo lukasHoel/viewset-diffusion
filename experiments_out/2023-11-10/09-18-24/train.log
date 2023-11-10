@@ -1,0 +1,12 @@
+[2023-11-10 09:18:24,900][torch.distributed.distributed_c10d][INFO] - Added key: store_based_barrier_key:1 to store for rank: 0
+[2023-11-10 09:18:24,901][torch.distributed.distributed_c10d][INFO] - Rank 0: Completed store-based barrier for key:store_based_barrier_key:1 with 1 nodes.
+[2023-11-10 09:18:36,708][pytorch3d.implicitron.dataset.json_index_dataset][INFO] - Loading Co3D frames from /home/hoellein/datasets/co3d/hydrant/frame_annotations.jgz.
+[2023-11-10 09:18:43,817][pytorch3d.implicitron.dataset.json_index_dataset][INFO] - Loading Co3D sequences from /home/hoellein/datasets/co3d/hydrant/sequence_annotations.jgz.
+[2023-11-10 09:18:43,821][pytorch3d.implicitron.dataset.json_index_dataset][INFO] - Loading Co3D subset lists from .
+[2023-11-10 09:18:43,875][pytorch3d.implicitron.dataset.json_index_dataset][INFO] - JsonIndexDataset #frames=135878
+[2023-11-10 09:18:43,876][pytorch3d.implicitron.dataset.json_index_dataset_map_provider_v2][INFO] - Loading frame index json from /home/hoellein/datasets/co3d/hydrant/set_lists/set_lists_fewview_dev.json.
+[2023-11-10 09:18:43,914][pytorch3d.implicitron.dataset.json_index_dataset_map_provider_v2][INFO] - Loading frame index json from /home/hoellein/datasets/co3d/hydrant/eval_batches/eval_batches_fewview_dev.json.
+[2023-11-10 09:18:49,647][pytorch3d.implicitron.dataset.json_index_dataset_map_provider_v2][INFO] - Train dataset: JsonIndexDataset #frames=63226
+[2023-11-10 09:18:50,462][pytorch3d.implicitron.dataset.json_index_dataset_map_provider_v2][INFO] - Val dataset: JsonIndexDataset #frames=10072
+[2023-11-10 09:18:51,279][pytorch3d.implicitron.dataset.json_index_dataset_map_provider_v2][INFO] - Test dataset: JsonIndexDataset #frames=10072
+[2023-11-10 09:18:51,287][pytorch3d.implicitron.dataset.json_index_dataset_map_provider_v2][INFO] - # eval batches: 52

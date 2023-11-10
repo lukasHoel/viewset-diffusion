@@ -10,13 +10,12 @@ render:
 
 data:
   dataset_type: co3d
-  data_path: /cluster/angmar/lhoellein/viewset-diffusion/co3d/teddybear # change this line
+  data_path: /cluster/angmar/lhoellein/viewset-diffusion/co3d/apple # change this line
   encode_rays: true
   input_size:
   - 128
   - 128
-  category: teddybear
+  category: apple
   sequence_idx: None
   white_background: false
   rotation_augmentation: true
-

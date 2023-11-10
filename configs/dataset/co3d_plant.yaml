@@ -10,7 +10,7 @@ render:
 
 data:
   dataset_type: co3d
-  data_path: null # Change this line
+  data_path: /cluster/angmar/lhoellein/viewset-diffusion/co3d/plant # Change this line
   encode_rays: true
   input_size:
   - 128
