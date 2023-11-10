@@ -5,16 +5,16 @@ import sys
 
 from omegaconf import DictConfig, OmegaConf
 
-from evaluation.generator import Generator
-from evaluation.metricator import Metricator
+from .evaluation.generator import Generator
+from .evaluation.metricator import Metricator
 
 import torch
 import torchvision.utils as tv_uils
 import numpy as np
 
-from utils import set_seed
+from .utils import set_seed
 
-from denoising_diffusion_pytorch.denoising_diffusion_pytorch import num_to_groups
+from .denoising_diffusion_pytorch.denoising_diffusion_pytorch import num_to_groups
 
 """
 Runs quantitative evaluation of a selected model. Dataset is inferred from the

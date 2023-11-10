@@ -13,12 +13,12 @@ from matplotlib import pyplot as plt
 
 from pytorch_lightning.lite import LightningLite
 
-from data_manager import get_data_manager
+from .data_manager import get_data_manager
 
-from model.reconstructor import Reconstructor
-from model.diffusion import ViewsetDiffusion
+from .model.reconstructor import Reconstructor
+from .model.diffusion import ViewsetDiffusion
 
-from utils import set_seed
+from .utils import set_seed
 
 from omegaconf import DictConfig, OmegaConf
 import hydra

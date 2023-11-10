@@ -4,7 +4,7 @@ from .evaluation.generator import Generator
 
 import torch
 
-from utils import set_seed
+from .utils import set_seed
 import os
 os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "max_split_size_mb:512"
 
