@@ -86,7 +86,7 @@ class Lite(LightningLite):
         else:
             iteration_start = 0
 
-            print('No model found in {}, training from scratch'.format(os.path.join(vis_dir, "model.pth")))
+            print('No model found in {}, training from scratch'.format(os.path.join(cfg.output_dir, "model.pth")))
         print('Model loaded.')
         optimizer = torch.optim.Adam(filter(lambda p: p.requires_grad, diffuser.parameters()),
                             lr=lr,
