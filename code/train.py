@@ -37,7 +37,7 @@ from PIL import Image
 
 class Lite(LightningLite):
     def run(self, cfg):
-        vis_dir = cfg.output_dir
+        cfg.output_dir = os.path.join(cfg.output_dir, "train", cfg.data.dataset_type, cfg.data.category)
 
         set_seed(cfg.general.random_seed)
 

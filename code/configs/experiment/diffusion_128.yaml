@@ -26,6 +26,6 @@ data:
   one_training_img_per_example: false
   encode_rays: true
 general:
-  devices: 1
+  devices: 2
 eval:
   sampling_timesteps: 250

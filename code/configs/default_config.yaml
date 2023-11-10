@@ -3,7 +3,7 @@ defaults:
   - wandb: defaults
   - hydra: defaults
   - _self_
-output_dir: /cluster/angmar/lhoellein/viewset-diffusion/outputs/debug-training
+output_dir: /cluster/angmar/lhoellein/viewset-diffusion/outputs/
 general:
   random_seed: 0
   devices: 1
