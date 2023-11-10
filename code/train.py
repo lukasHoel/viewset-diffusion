@@ -34,6 +34,8 @@ from .io_utils import pmgr
 
 from PIL import Image
 
+from tqdm.auto import tqdm
+
 
 class Lite(LightningLite):
     def run(self, cfg):
@@ -135,114 +137,114 @@ class Lite(LightningLite):
         val_dataloader_iterator = iter(val_dataloader)
         iteration = iteration_start - 1
         print('Starting training')
-        for num_epoch in range((n_iter - iteration_start) // len(dataloader) + 1):
-            dataloader.sampler.set_epoch(num_epoch)
-            for data in dataloader:
-                iteration += 1
+        with tqdm(
+            initial=iteration,
+            total=n_iter,
+            disable=not self.is_global_zero,
+        ) as pbar:
+            for num_epoch in range((n_iter - iteration_start) // len(dataloader) + 1):
+                dataloader.sampler.set_epoch(num_epoch)
+                for data in dataloader:
+                    iteration += 1
 
-                losses = diffuser(data["x_in"], data, iteration = iteration)
+                    losses = diffuser(data["x_in"], data, iteration = iteration)
 
-                total_loss = sum([l  for l in losses if not torch.isnan(l)])
-                self.backward(total_loss)
+                    total_loss = sum([l  for l in losses if not torch.isnan(l)])
+                    self.backward(total_loss)
 
-                optimizer.step()
-                optimizer.zero_grad()
+                    optimizer.step()
+                    optimizer.zero_grad()
 
-                if cfg.optimization.ema.use and self.is_global_zero:
-                    ema.update()
+                    if cfg.optimization.ema.use and self.is_global_zero:
+                        ema.update()
 
-                if (iteration + 1) % 10 == 0:
-                    try:
-                        val_data = next(val_dataloader_iterator)
-                    except StopIteration:
-                        val_dataloader_iterator = iter(val_dataloader)
-                        val_data = next(val_dataloader_iterator)
+                    if (iteration + 1) % 10 == 0:
+                        try:
+                            val_data = next(val_dataloader_iterator)
+                        except StopIteration:
+                            val_dataloader_iterator = iter(val_dataloader)
+                            val_data = next(val_dataloader_iterator)
 
-                    for k, v in val_data.items():
-                        val_data[k] = self.to_device(v)
-                    with torch.no_grad():
-                        losses = diffuser(val_data["x_in"], val_data)
-                        val_loss = sum([l for l in losses if not torch.isnan(l)])
+                        for k, v in val_data.items():
+                            val_data[k] = self.to_device(v)
+                        with torch.no_grad():
+                            losses = diffuser(val_data["x_in"], val_data)
+                            val_loss = sum([l for l in losses if not torch.isnan(l)])
 
-                if self.is_global_zero and (iteration + 1) % 10 == 0:
-                    if len(losses) == 2:
-                        loss_unseen = np.log(losses[0].item() + 1e-8)
-                        loss_seen = np.log(losses[1].item() +1e-8)
-                        print("loss_unseen", loss_unseen)
-                        print("loss_seen", loss_seen)
+                    if self.is_global_zero and (iteration + 1) % 10 == 0:
+                        total_loss = total_loss.item()
+                        val_loss = val_loss.item()
+                        pbar.set_description(f"total_loss: {total_loss:.4f}, val_loss: {val_loss:.4f}")
 
-                    total_loss = np.log(total_loss.item())
-                    val_loss =  np.log(val_loss.item())
-                    print("total_loss", total_loss)
-                    print("val_loss", val_loss)
+                    if (iteration == 0 or iteration % (cfg.optimization.n_iter // 10) == 0) and self.is_global_zero:
+                        try:
+                            val_data = next(val_dataloader_iterator)
+                        except StopIteration:
+                            val_dataloader_iterator = iter(val_dataloader)
+                            val_data = next(val_dataloader_iterator)
+                        for k, v in val_data.items():
+                            val_data[k] = self.to_device(v)
+                        # forward function of diffuser normalizes the input to [-1, 1]
+                        # in visualisation we need to do it manually
+                        noisy_input = torch.randint(0, cfg.model.diffuser.steps, (val_data["x_in"].shape[0],), ).long()
+                        noisy_input = self.to_device(noisy_input)
+                        log_visualisations(diffuser, val_data, noisy_input, iteration, cfg, split="val")
 
-                if (iteration == 0 or iteration % (cfg.optimization.n_iter // 10) == 0) and self.is_global_zero:
-                    try:
-                        val_data = next(val_dataloader_iterator)
-                    except StopIteration:
-                        val_dataloader_iterator = iter(val_dataloader)
-                        val_data = next(val_dataloader_iterator)
-                    for k, v in val_data.items():
-                        val_data[k] = self.to_device(v)
-                    # forward function of diffuser normalizes the input to [-1, 1]
-                    # in visualisation we need to do it manually
-                    noisy_input = torch.randint(0, cfg.model.diffuser.steps, (val_data["x_in"].shape[0],), ).long()
-                    noisy_input = self.to_device(noisy_input)
-                    log_visualisations(diffuser, val_data, noisy_input, iteration, cfg, split="val")
+                        noisy_input = torch.randint(0, cfg.model.diffuser.steps, (data["x_in"].shape[0],), ).long()
+                        noisy_input = self.to_device(noisy_input)
+                        log_visualisations(diffuser, data, noisy_input, iteration, cfg, split="training")
 
-                    noisy_input = torch.randint(0, cfg.model.diffuser.steps, (data["x_in"].shape[0],), ).long()
-                    noisy_input = self.to_device(noisy_input)
-                    log_visualisations(diffuser, data, noisy_input, iteration, cfg, split="training")
+                    if (iteration+1) % cfg.optimization.save_every == 0 or iteration == 0:
+                        diffuser.eval()
+                        output_path = os.path.join(cfg.output_dir, "model.pth")
+                        local_output_path = pmgr.get_local_path(output_path)
+                        with pmgr.open(local_output_path, "wb") as f:
+                            if cfg.optimization.ema.use and self.is_global_zero:
+                                print('Saving ema model')
 
-                if (iteration+1) % cfg.optimization.save_every == 0 or iteration == 0:
-                    diffuser.eval()
-                    output_path = os.path.join(cfg.output_dir, "model.pth")
-                    local_output_path = pmgr.get_local_path(output_path)
-                    with pmgr.open(local_output_path, "wb") as f:
-                        if cfg.optimization.ema.use and self.is_global_zero:
-                            print('Saving ema model')
-
-                            torch.save({"diffuser": ema.ema_model.state_dict(),
-                                    "optimizer": optimizer.state_dict(),
-                                    "iteration": iteration},
-                                    f)
-                        else:
-                            self.print('Saving non-ema model')
-                            self.save({"diffuser": diffuser.state_dict(),
-                                    "optimizer": optimizer.state_dict(),
-                                    "iteration": iteration},
-                                    f)
-                    if str(local_output_path) != str(output_path):
-                        pmgr.copy_from_local(local_output_path, output_path)
-                    self.print("Saved model at iteration {}".format(iteration))
-                    diffuser.train()                
-
-                # without noise we train for fewer iterations so need to earlier
-                if cfg.optimization.hard_mining_proportion == 0.0:
-                    interval = 5000
-                    cutoff_iteration = 30000
-                else:
-                    interval = 8000
-                    cutoff_iteration = 120000
-
-                if (iteration+1) % interval == 0 and iteration >= cutoff_iteration:
-                    diffuser.eval()
-                    output_path = os.path.join(cfg.output_dir, "model_{}.pth".format(iteration + 1))
-                    local_output_path = pmgr.get_local_path(output_path)
-                    with pmgr.open(local_output_path, "wb") as f:
-                        if cfg.optimization.ema.use and self.is_global_zero:
-                            print('Saving ema model')
-                            torch.save({"diffuser": ema.ema_model.state_dict(),
+                                torch.save({"diffuser": ema.ema_model.state_dict(),
+                                        "optimizer": optimizer.state_dict(),
                                         "iteration": iteration},
                                         f)
-                        else:
-                            self.print('Saving non-ema model')
-                            self.save({"diffuser": diffuser.state_dict(),
-                                    "iteration": iteration},
-                                    f)
-                    if str(local_output_path) != str(output_path):
-                        pmgr.copy_from_local(local_output_path, output_path)
-                    diffuser.train()
+                            else:
+                                self.print('Saving non-ema model')
+                                self.save({"diffuser": diffuser.state_dict(),
+                                        "optimizer": optimizer.state_dict(),
+                                        "iteration": iteration},
+                                        f)
+                        if str(local_output_path) != str(output_path):
+                            pmgr.copy_from_local(local_output_path, output_path)
+                        self.print("Saved model at iteration {}".format(iteration))
+                        diffuser.train()
+
+                    # without noise we train for fewer iterations so need to earlier
+                    if cfg.optimization.hard_mining_proportion == 0.0:
+                        interval = 5000
+                        cutoff_iteration = 30000
+                    else:
+                        interval = 8000
+                        cutoff_iteration = 120000
+
+                    if (iteration+1) % interval == 0 and iteration >= cutoff_iteration:
+                        diffuser.eval()
+                        output_path = os.path.join(cfg.output_dir, "model_{}.pth".format(iteration + 1))
+                        local_output_path = pmgr.get_local_path(output_path)
+                        with pmgr.open(local_output_path, "wb") as f:
+                            if cfg.optimization.ema.use and self.is_global_zero:
+                                print('Saving ema model')
+                                torch.save({"diffuser": ema.ema_model.state_dict(),
+                                            "iteration": iteration},
+                                            f)
+                            else:
+                                self.print('Saving non-ema model')
+                                self.save({"diffuser": diffuser.state_dict(),
+                                        "iteration": iteration},
+                                        f)
+                        if str(local_output_path) != str(output_path):
+                            pmgr.copy_from_local(local_output_path, output_path)
+                        diffuser.train()
+
+                    pbar.update(1)
 
 
 def log_visualisations(diffuser, data, noisy_input, iteration, cfg,
