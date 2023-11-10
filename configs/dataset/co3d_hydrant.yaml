@@ -11,7 +11,7 @@ render:
 data:
   dataset_type: co3d
   encode_rays: true
-  data_path: /cluster/angmar/lhoellein/viewset-diffusion/co3d/hydrant # change this line
+  data_path: /cluster/angmar/lhoellein/viewset-diffusion/co3d # change this line
   input_size:
   - 128
   - 128
