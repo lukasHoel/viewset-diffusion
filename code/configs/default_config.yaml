@@ -32,6 +32,7 @@ optimization:
   weigh_clean: false
   save_every: 2000
   continue_from_checkpoint: none
+  freeze_pretrained: false
   keep_clean_only_proportion: 0.0
   ema:
     use: false
