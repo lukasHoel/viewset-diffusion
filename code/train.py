@@ -138,7 +138,7 @@ class Lite(LightningLite):
         iteration = iteration_start - 1
         print('Starting training')
         with tqdm(
-            initial=iteration,
+            initial=iteration_start,
             total=n_iter,
             disable=not self.is_global_zero,
         ) as pbar:
