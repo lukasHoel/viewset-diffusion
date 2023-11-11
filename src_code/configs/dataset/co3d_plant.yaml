@@ -17,5 +17,5 @@ data:
   - 128
   category: plant
   sequence_idx: None
-  white_background: false
+  white_background: true
   rotation_augmentation: true
