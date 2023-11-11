@@ -107,10 +107,10 @@ def main(cfg: DictConfig):
                 all_lpipses[ex_idx - chunk_start].append(lpipses[ex_idx - start_idx])
                 all_ssims[ex_idx - chunk_start].append(ssims[ex_idx - start_idx])
 
-            if sample_idx == 0 and cfg.save_output:
+            if cfg.save_output:
                 for ex_idx in range(start_idx, start_idx+batch):
                     example_id = generator.dataset.get_example_id(ex_idx)
-                    out_dir_name = os.path.join(os.getcwd(), example_id)
+                    out_dir_name = os.path.join(os.path.dirname(cfg.model_path), "test_quantitative", example_id)
                     assert cfg.N_noisy != 0, "N_noisy must be 0 for saving output"
                     if not os.path.isdir(out_dir_name):
                         os.mkdir(out_dir_name)
