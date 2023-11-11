@@ -113,7 +113,7 @@ def main(cfg: DictConfig):
                     out_dir_name = os.path.join(os.path.dirname(cfg.model_path), "test_quantitative", example_id)
                     assert cfg.N_noisy != 0, "N_noisy must be 0 for saving output"
                     if not os.path.isdir(out_dir_name):
-                        os.mkdir(out_dir_name)
+                        os.makedirs(out_dir_name, exist_ok=True)
                     N_test_start = cfg.N_clean + cfg.N_noisy
                     for rot_idx, output_frame in enumerate(generated_samples[ex_idx - start_idx][N_test_start:]):
                         # save output frames
