@@ -61,6 +61,7 @@ class CO3DDataset():
 
         self.preprocess_pose_embeddings()
         self.sequence_starts_from = torch.tensor(self.sequence_starts_from)
+        print("finish preprocess_pose_embeddings")
 
         # =============== Dataset order for evaluation ===============
         if dataset_name == "test" or dataset_name == "val":
