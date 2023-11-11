@@ -107,14 +107,15 @@ def main(args):
             device = torch.device("cpu") 
 
     generator = Generator(args.experiment_path, device, seed=args.seed,
-                          deterministic = args.N_noisy==0, overwrite_to_white_bkgd=True)
+                          deterministic = args.N_noisy==0)
 
     samples, gt_data = generator.generate_samples(
                                          samples_to_generate,
                                          N_clean=args.N_clean,
                                          N_noisy=args.N_noisy,
                                          cf_guidance=args.cf_guidance,
-                                         split=split)
+                                         split=split,
+                                         force_white_background=False)
 
     generator.reshape_and_save_samples(samples, gt_data, args.N_clean, 
                                        args.N_noisy, split, args.cf_guidance,

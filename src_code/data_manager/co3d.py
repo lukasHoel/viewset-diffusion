@@ -378,6 +378,8 @@ class CO3DDataset():
     def get_attributes_selected_sequence_and_frames(self, sequence_name, frame_idxs,
                                                     rot_aug=None, trans_aug=None):
         rgbs = self.images_all_sequences[sequence_name][frame_idxs].clone()
+        assert rgbs.shape[1] == 4
+        alpha_channel = rgbs[:, 3:]
         if rgbs.shape[1] == 4:
             # get rid of the background
             if self.cfg.data.white_background:
@@ -422,7 +424,7 @@ class CO3DDataset():
                                      val_pose_dir_embeds], dim=1)
         assert aug_img_in.shape[1] == 9
 
-        return rgbs, training_imgs, validation_imgs, aug_img_in, val_pose_embeds, principal_points, focal_lengths, camera_Rs, camera_Ts
+        return rgbs, training_imgs, validation_imgs, aug_img_in, val_pose_embeds, principal_points, focal_lengths, camera_Rs, camera_Ts, alpha_channel
 
     def get_item_with_virtual_views(self, index, N_virtual_views):
         frame_idxs = self.fixed_frame_idxs[index]
@@ -477,7 +479,7 @@ class CO3DDataset():
         all_view_idxs = torch.tensor(all_view_idxs)
         attributes = self.get_attributes_selected_sequence_and_frames(sequence_name, all_view_idxs)
         
-        rgbs, _, _, aug_img_in, val_pose_embeds, principal_points, focal_lengths, camera_Rs, camera_Ts = \
+        rgbs, _, _, aug_img_in, val_pose_embeds, principal_points, focal_lengths, camera_Rs, camera_Ts, alpha_channel = \
             attributes
         
         if self.cfg.data.white_background:
@@ -494,11 +496,12 @@ class CO3DDataset():
                 "focal_lengths": focal_lengths,
                 "target_Rs": camera_Rs,
                 "target_Ts": camera_Ts,
-                "background": rgbs.permute(0, 2, 3, 1) * 0 + bkgd
+                "background": rgbs.permute(0, 2, 3, 1) * 0 + bkgd,
+                "alpha_channel": alpha_channel
                 } 
 
     def rearange_order_for_diffusion(self, attributes):
-        rgbs, training_imgs, validation_imgs, aug_img_in, val_pose_embeds, principal_points, focal_lengths, camera_Rs, camera_Ts = \
+        rgbs, training_imgs, validation_imgs, aug_img_in, val_pose_embeds, principal_points, focal_lengths, camera_Rs, camera_Ts, alpha_channel = \
             attributes
         # In training the validation image is unused
         if self.dataset_name=="train" or self.for_training:
@@ -533,5 +536,6 @@ class CO3DDataset():
                 "focal_lengths": focal_lengths[input_order],
                 "target_Rs": camera_Rs[input_order],
                 "target_Ts": camera_Ts[input_order],
-                "background": rgbs[input_order].permute(0, 2, 3, 1) * 0 + bkgd
+                "background": rgbs[input_order].permute(0, 2, 3, 1) * 0 + bkgd,
+                "alpha_channel": alpha_channel
                 }

@@ -29,15 +29,13 @@ class Generator():
       - diffusion model
       - dataset"""
     def __init__(self, model_path, device, seed=0,
-                 deterministic=False, overwrite_to_white_bkgd=False):
+                 deterministic=False):
         # for reproducibility
         set_seed(seed=seed)
         # experiment path should be a folder that contains /hydra folder
         # with the config.yaml file and a model.pth file
         experiment_path = os.path.dirname(model_path)
         cfg = OmegaConf.load(os.path.join(experiment_path, ".hydra", "config.yaml"))
-        if overwrite_to_white_bkgd:
-            cfg.data.white_background = True
         self.experiment_path = experiment_path
         self.cfg = cfg
 
@@ -163,7 +161,7 @@ class Generator():
 
     @torch.no_grad()
     def generate_samples(self, dataset_idxs, N_clean, N_noisy, split='val',
-                         cf_guidance = 0.0, use_testing_protocol = False):
+                         cf_guidance = 0.0, use_testing_protocol = False, force_white_background = False):
         """
         Args:
             dataset_idxs: list of indexes of images in the dataset to use for 
@@ -197,7 +195,8 @@ class Generator():
                                           "val_pose_embeds",
                                           "target_Rs",
                                           "target_Ts",
-                                          "background"]}
+                                          "background",
+                                          "alpha_channel"]}
             if self.cfg.data.dataset_type == "co3d":
                 batch_data["principal_points"] = []
                 batch_data["focal_lengths"] = []
@@ -230,6 +229,12 @@ class Generator():
                 output_all_samples = samples
             else:
                 output_all_samples = torch.cat([output_all_samples, samples], dim=0)
+
+            # make background white
+            if force_white_background:
+                for idx in range(N_clean + N_noisy):
+                    samples[:, idx] = samples[:, idx] * batch_data["alpha_channel"][:, idx] + 1.0 * (1 - batch_data["alpha_channel"][:, idx])
+                samples[:, N_clean + N_noisy] = samples[:, N_clean + N_noisy] * batch_data["alpha_channel"][:, N_clean + N_noisy - 1] + 1.0 * (1 - batch_data["alpha_channel"][:, N_clean + N_noisy - 1])
 
             batch_idx_start += batch_size
         for k in gt_data.keys():

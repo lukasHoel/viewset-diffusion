@@ -36,7 +36,7 @@ def main(cfg: DictConfig):
         device = torch.device("cpu")  
 
     generator = Generator(cfg.model_path, device, seed=cfg.seed,
-                          deterministic=cfg.eval.deterministic, overwrite_to_white_bkgd=True)
+                          deterministic=cfg.eval.deterministic)
     # Sets the correct indices for evaluation
     generator.update_dataset(cfg.N_clean, cfg.eval.split, cfg.cf_guidance,
                              with_index_selection=True)
@@ -45,7 +45,7 @@ def main(cfg: DictConfig):
     if "minens" in cfg.model_path:
         length = 200
     elif "co3d" in cfg.model_path:
-        length = 10
+        length = 100
     else:
         length = len(generator.dataset)
 
@@ -95,7 +95,8 @@ def main(cfg: DictConfig):
                                     cfg.N_clean,
                                     cfg.N_noisy,
                                     split=split,
-                                    use_testing_protocol=True)
+                                    use_testing_protocol=True,
+                                    force_white_background=False)
             batch_generated_samples.append(generated_samples)
             psnrs, lpipses, ssims = \
                 metricator.measure_metrics(generated_samples, 
