@@ -6,7 +6,7 @@ import hydra
 from omegaconf import DictConfig
 
 import os
-from tqdm import tqdm
+from tqdm.auto import tqdm
 
 from . import (
     EXCLUDE_SEQUENCE, 
@@ -263,6 +263,8 @@ class CO3DDataset():
         for i in range(1, len(self.sequence_names)+1):
             self.sequence_starts_from.append(self.sequence_starts_from[-1] + len(self.images_all_sequences[self.sequence_names[i-1]]))
 
+        print("finished co3d dataset read")
+
     def get_camera_screen_unprojected(self):
         # Step 1. and 2 to encode ray direction
         # 1. generate a grid of x, y coordinates of every point in screen coordinates
@@ -299,7 +301,7 @@ class CO3DDataset():
         self.pose_dir_embed_all_sequences = {}
         X, Y, Z = self.get_camera_screen_unprojected()
 
-        for sequence_name in self.sequence_names:
+        for sequence_name in tqdm(self.sequence_names, desc="preprocess_pose_embeddings"):
             H, W = self.images_all_sequences[sequence_name].shape[2:]
             
             pose_orig_embed, pose_dir_embed = self.pose_embeddings_camera_sequence(
