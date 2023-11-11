@@ -40,6 +40,9 @@ from tqdm.auto import tqdm
 class Lite(LightningLite):
     def run(self, cfg):
         cfg.output_dir = os.path.join(cfg.output_dir, "train", cfg.data.dataset_type, cfg.data.category)
+        if cfg.general.devices > 1:
+            cfg.output_dir = os.path.join(cfg.output_dir, f"n_gpus_{cfg.general.devices}")
+
         pmgr.mkdirs(cfg.output_dir)
 
         set_seed(cfg.general.random_seed)
