@@ -2,6 +2,6 @@
 __pycache__/
 outputs/
 wandb/
-!code/configs/wandb
+!src_code/configs/wandb
 experiments_out/
 eval_out/
