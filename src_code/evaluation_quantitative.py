@@ -36,7 +36,7 @@ def main(cfg: DictConfig):
         device = torch.device("cpu")  
 
     generator = Generator(cfg.model_path, device, seed=cfg.seed,
-                          deterministic=cfg.eval.deterministic)
+                          deterministic=cfg.eval.deterministic, overwrite_to_white_bkgd=True)
     # Sets the correct indices for evaluation
     generator.update_dataset(cfg.N_clean, cfg.eval.split, cfg.cf_guidance,
                              with_index_selection=True)

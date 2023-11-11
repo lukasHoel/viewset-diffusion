@@ -107,7 +107,7 @@ def main(args):
             device = torch.device("cpu") 
 
     generator = Generator(args.experiment_path, device, seed=args.seed,
-                          deterministic = args.N_noisy==0)
+                          deterministic = args.N_noisy==0, overwrite_to_white_bkgd=True)
 
     samples, gt_data = generator.generate_samples(
                                          samples_to_generate,

@@ -29,13 +29,15 @@ class Generator():
       - diffusion model
       - dataset"""
     def __init__(self, model_path, device, seed=0,
-                 deterministic=False):
+                 deterministic=False, overwrite_to_white_bkgd=False):
         # for reproducibility
         set_seed(seed=seed)
         # experiment path should be a folder that contains /hydra folder
         # with the config.yaml file and a model.pth file
         experiment_path = os.path.dirname(model_path)
         cfg = OmegaConf.load(os.path.join(experiment_path, ".hydra", "config.yaml"))
+        if overwrite_to_white_bkgd:
+            cfg.data.white_background = True
         self.experiment_path = experiment_path
         self.cfg = cfg
 
