@@ -121,8 +121,8 @@ class Lite(LightningLite):
         # number of images will be batch_size x number of input conditioning images
         batch_size = cfg.optimization.batch_size 
         dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True,
-                                pin_memory=True, num_workers=0,
-                                persistent_workers=False)
+                                pin_memory=True, num_workers=4,
+                                persistent_workers=True)
 
         if cfg.data.dataset_type == "srn":
             val_single = True
@@ -134,7 +134,7 @@ class Lite(LightningLite):
                 for_training=True)
         val_dataloader = DataLoader(val_dataset, batch_size=batch_size,
                                     shuffle=True, pin_memory=True, 
-                                    num_workers=0, persistent_workers=False)
+                                    num_workers=4, persistent_workers=True)
 
         dataloader, val_dataloader = self.setup_dataloaders(dataloader, val_dataloader)
         val_dataloader_iterator = iter(val_dataloader)
