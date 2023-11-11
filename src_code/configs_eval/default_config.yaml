@@ -12,5 +12,5 @@ eval:
   n_devices: 1
   device_idx: 0
   split: test
-  n_samples_per_ex: 20
+  n_samples_per_ex: 1
   deterministic: false

@@ -2,6 +2,7 @@ import argparse
 import hydra
 import os
 import sys
+import json
 
 from omegaconf import DictConfig, OmegaConf
 
@@ -44,7 +45,7 @@ def main(cfg: DictConfig):
     if "minens" in cfg.model_path:
         length = 200
     elif "co3d" in cfg.model_path:
-        length = 100
+        length = 10
     else:
         length = len(generator.dataset)
 
@@ -107,19 +108,36 @@ def main(cfg: DictConfig):
                 all_lpipses[ex_idx - chunk_start].append(lpipses[ex_idx - start_idx])
                 all_ssims[ex_idx - chunk_start].append(ssims[ex_idx - start_idx])
 
-            if cfg.save_output:
+            if sample_idx == 0 and cfg.save_output:
                 for ex_idx in range(start_idx, start_idx+batch):
                     example_id = generator.dataset.get_example_id(ex_idx)
-                    out_dir_name = os.path.join(os.path.dirname(cfg.model_path), "test_quantitative", example_id)
+                    out_dir_name = os.path.join(os.path.dirname(cfg.model_path), "test_quantitative", os.path.basename(os.path.dirname(cfg.model_path)), example_id)
                     assert cfg.N_noisy != 0, "N_noisy must be 0 for saving output"
                     if not os.path.isdir(out_dir_name):
                         os.makedirs(out_dir_name, exist_ok=True)
                     N_test_start = cfg.N_clean + cfg.N_noisy
+                    # save output frames
                     for rot_idx, output_frame in enumerate(generated_samples[ex_idx - start_idx][N_test_start:]):
-                        # save output frames
                         tv_uils.save_image(output_frame,
                             os.path.join(out_dir_name, "{}_out.png".format(rot_idx)),
                             padding=0,n_row=1)
+
+                    # save input frames
+                    input_frame = (gt_data['x_cond'][ex_idx - start_idx][0] + 1) * 0.5
+                    tv_uils.save_image(input_frame,
+                        os.path.join(out_dir_name, "in.png"),
+                        padding=0,n_row=1)
+
+                    # save scene information
+                    frame_idxs = generator.dataset.fixed_frame_idxs[ex_idx]
+                    scene_info = {
+                        "input_frame": frame_idxs[0].item(),
+                        "target_frames": list(x.item() for x in frame_idxs[1:]),
+                        "scene": "_".join(example_id.split("_")[:-1])
+                    }
+                    with open(os.path.join(out_dir_name, "scene_info.json"), "w") as f:
+                        json.dump(scene_info, f)
+
         # Measures the PSNR of an average sample - this will be blurrier but more often
         # than not will give a higher PSNR than average PSNR of a single sample.
         # Shows that PSNR(average(samples)) > average(PSNR(samples)), illustrating that
