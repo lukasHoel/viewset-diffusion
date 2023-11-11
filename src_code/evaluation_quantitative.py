@@ -38,7 +38,7 @@ def main(cfg: DictConfig):
                           deterministic=cfg.eval.deterministic)
     # Sets the correct indices for evaluation
     generator.update_dataset(cfg.N_clean, cfg.eval.split, cfg.cf_guidance,
-                             with_index_selection=True)
+                             with_index_selection=False) # True
     metricator = Metricator()
 
     if "minens" in cfg.model_path:

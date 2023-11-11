@@ -4,3 +4,4 @@ outputs/
 wandb/
 !code/configs/wandb
 experiments_out/
+eval_out/
