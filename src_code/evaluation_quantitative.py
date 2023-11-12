@@ -45,7 +45,7 @@ def main(cfg: DictConfig):
     if "minens" in cfg.model_path:
         length = 200
     elif "co3d" in cfg.model_path:
-        length = 100
+        length = 4
     else:
         length = len(generator.dataset)
 
@@ -103,9 +103,9 @@ def main(cfg: DictConfig):
                                             gt_data,
                                             cfg.N_noisy,
                                             cfg.N_clean,
-                                            non_one_length)
+                                            non_one_length)  # one value per batch, e.g. bs=4 and 5 frames --> average PSNR from all 5 frames
             for ex_idx in range(start_idx, start_idx+batch):
-                all_psnrs[ex_idx - chunk_start].append(psnrs[ex_idx - start_idx])
+                all_psnrs[ex_idx - chunk_start].append(psnrs[ex_idx - start_idx])  # a per-batch list of psnrs, e.g. bs=4 and 5 frames and n_samples_per_ex=2 --> list of length two with each value: average PSNR from all 5 frames
                 all_lpipses[ex_idx - chunk_start].append(lpipses[ex_idx - start_idx])
                 all_ssims[ex_idx - chunk_start].append(ssims[ex_idx - start_idx])
 

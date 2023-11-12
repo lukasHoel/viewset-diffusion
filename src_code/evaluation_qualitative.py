@@ -45,7 +45,7 @@ def main(args):
             device = torch.device("cpu") 
 
     elif args.dataset_name == "hydrant":
-        samples_to_generate = torch.randperm(4990)[:16]
+        samples_to_generate = torch.randperm(4990)[:args.n_samples]
 
         if torch.cuda.is_available():
             device = torch.device("cuda:{}".format(0))
@@ -60,7 +60,7 @@ def main(args):
            4642, 4844, 5045, 5244, 5446, 5648, 5850, 6052, 6254, 6456, 6658, 
            6860, 7062, 7264, 7466, 7668, 7868, 8070, 8272, 8474, 8676, 8878, 
            9080, 9282, 9484, 9686, 9888, 10090, 10292, 10494, 10696, 10898, 
-           11100][args.seed*16: args.seed*16 + 16]
+           11100][args.seed*args.n_samples: args.seed*args.n_samples + args.n_samples]
         if args.N_clean == 2:
             samples_to_generate = [s // 2 for s in samples_to_generate]
 
@@ -78,7 +78,7 @@ def main(args):
            9082, 9284, 9486, 9688, 9890, 10092, 10289, 10491, 10693, 10895, 
            11097, 11299, 11501, 11703, 11905, 12107, 12309, 12511, 12713, 
            12915, 13117, 13319, 13521, 13723, 13925, 14127, 14329, 14531, 
-           14733, 14935, 15137, 15339, 15541, 15743][args.seed*16: args.seed*16 + 16]
+           14733, 14935, 15137, 15339, 15541, 15743][args.seed*args.n_samples: args.seed*args.n_samples + args.n_samples]
         split = 'test'
         if torch.cuda.is_available():
             device = torch.device("cuda:{}".format(0))
@@ -99,7 +99,7 @@ def main(args):
         12664, 12866, 13068, 13270, 13472, 13674, 13876, 
         14078, 14280, 14482, 14684, 14886, 15088, 15290, 
         15492, 15694, 15896, 16098, 16300, 16502, 16704, 
-        16906, 17108, 17310][args.seed*16: args.seed*16 + 16]
+        16906, 17108, 17310][args.seed*args.n_samples: args.seed*args.n_samples + args.n_samples]
         if torch.cuda.is_available():
             device = torch.device("cuda:{}".format(0))
             torch.cuda.set_device(device)
@@ -129,6 +129,7 @@ def parse_args(args):
     parser.add_argument("--N_noisy", type=int, help="Number of noisy images in viewset, at least 1")
     parser.add_argument("--cf_guidance", type=float, help="Strength of classifier-free guidance")
     parser.add_argument("--seed", type=int, default=0, help="Random seed")
+    parser.add_argument("--n_samples", type=int, default=16, help="Random seed")
 
     args = parser.parse_args(args)
 

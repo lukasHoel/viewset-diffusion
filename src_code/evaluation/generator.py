@@ -126,16 +126,28 @@ class Generator():
             tv_uils.save_image(diffused_view_result, 
                     os.path.join(out_dir_name, "diffused_view_{}.png".format(diffused_view_idx)),
                     nrow=n_rows)
+            for bs_idx in range(samples.shape[0]):
+                tv_uils.save_image(diffused_view_result[bs_idx:bs_idx+1],
+                                   os.path.join(out_dir_name, "diffused_view_{}_{}.png".format(bs_idx, diffused_view_idx)),
+                                   nrow=1)
         
         diffused_target = resizing(samples[:, N_clean + N_noisy - 1])
         tv_uils.save_image(diffused_target, 
                 os.path.join(out_dir_name, "diffused_view_target.png"),
                 nrow=n_rows)
+        for bs_idx in range(samples.shape[0]):
+            tv_uils.save_image(diffused_target[bs_idx:bs_idx + 1],
+                               os.path.join(out_dir_name, "diffused_view_{}_target.png".format(bs_idx)),
+                               nrow=1)
         
         gt_target = resizing(data["validation_imgs"][:, -1])
         tv_uils.save_image(gt_target, 
                 os.path.join(out_dir_name, "gt_target.png"),
                 nrow=n_rows)
+        for bs_idx in range(samples.shape[0]):
+            tv_uils.save_image(gt_target[bs_idx:bs_idx + 1],
+                               os.path.join(out_dir_name, "gt_{}_target.png".format(bs_idx)),
+                               nrow=1)
 
         grids = []
         n_rows = int(np.sqrt(samples.shape[0]))
@@ -150,6 +162,10 @@ class Generator():
             tv_uils.save_image(grid.permute(2, 0, 1), 
                 os.path.join(out_dir_name, "rot_{}.png".format(str(rot_idx).zfill(3))),
                 nrow=n_rows)
+            for bs_idx in range(samples.shape[0]):
+                tv_uils.save_image(samples[bs_idx:bs_idx + 1, rot_idx],
+                                   os.path.join(out_dir_name, "rot_{}_{}.png".format(bs_idx, str(rot_idx).zfill(3))),
+                                   nrow=1)
         
         gif = grids[0]
         gif.save(fp=os.path.join(out_dir_name, 'volume.gif'),
@@ -170,7 +186,7 @@ class Generator():
             N_noisy: number of noisy images in viewset
         """
         # comment the line below to avoid repeated dataset loading in quantitative eval
-        # self.update_dataset(N_clean, split, cf_guidance)
+        self.update_dataset(N_clean, split, cf_guidance)
 
         # assert N_noisy > 0, "Wrong function for deterministic reconstruction"
         # group samples into batches
