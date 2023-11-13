@@ -73,14 +73,16 @@ def main(args):
 
     elif args.dataset_name == "teddybear":
         # each of these samples comes from a different sequence
-        samples_to_generate = [0, 202, 403, 605, 807, 1009, 1211, 1413, 1615, 1816, 2018, 2219, 
-           2421, 2623, 2825, 3027, 3229, 3431, 3632, 3834, 4036, 4238, 4440, 
-           4642, 4844, 5045, 5244, 5446, 5648, 5850, 6052, 6254, 6456, 6658, 
-           6860, 7062, 7264, 7466, 7668, 7868, 8070, 8272, 8474, 8676, 8878, 
-           9080, 9282, 9484, 9686, 9888, 10090, 10292, 10494, 10696, 10898, 
-           11100][args.seed*args.n_samples: args.seed*args.n_samples + args.n_samples]
-        if args.N_clean == 2:
-            samples_to_generate = [s // 2 for s in samples_to_generate]
+        # samples_to_generate = [0, 202, 403, 605, 807, 1009, 1211, 1413, 1615, 1816, 2018, 2219,
+        #    2421, 2623, 2825, 3027, 3229, 3431, 3632, 3834, 4036, 4238, 4440,
+        #    4642, 4844, 5045, 5244, 5446, 5648, 5850, 6052, 6254, 6456, 6658,
+        #    6860, 7062, 7264, 7466, 7668, 7868, 8070, 8272, 8474, 8676, 8878,
+        #    9080, 9282, 9484, 9686, 9888, 10090, 10292, 10494, 10696, 10898,
+        #    11100][args.seed*args.n_samples: args.seed*args.n_samples + args.n_samples]
+        # if args.N_clean == 2:
+        #     samples_to_generate = [s // 2 for s in samples_to_generate]
+
+        samples_to_generate = torch.randperm(11100)[:args.n_samples]
 
         if torch.cuda.is_available():
             device = torch.device("cuda:{}".format(0))
