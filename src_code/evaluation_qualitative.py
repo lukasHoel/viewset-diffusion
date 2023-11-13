@@ -54,7 +54,7 @@ def main(args):
             device = torch.device("cpu")
 
     elif args.dataset_name == "apple":
-        samples_to_generate = torch.randperm(4990)[:args.n_samples]
+        samples_to_generate = torch.randperm(4964)[:args.n_samples]
 
         if torch.cuda.is_available():
             device = torch.device("cuda:{}".format(0))
