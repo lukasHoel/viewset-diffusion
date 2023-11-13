@@ -51,7 +51,25 @@ def main(args):
             device = torch.device("cuda:{}".format(0))
             torch.cuda.set_device(device)
         else:
-            device = torch.device("cpu") 
+            device = torch.device("cpu")
+
+    elif args.dataset_name == "apple":
+        samples_to_generate = torch.randperm(4990)[:args.n_samples]
+
+        if torch.cuda.is_available():
+            device = torch.device("cuda:{}".format(0))
+            torch.cuda.set_device(device)
+        else:
+            device = torch.device("cpu")
+
+    elif args.dataset_name == "donut":
+        samples_to_generate = torch.randperm(4990)[:args.n_samples]
+
+        if torch.cuda.is_available():
+            device = torch.device("cuda:{}".format(0))
+            torch.cuda.set_device(device)
+        else:
+            device = torch.device("cpu")
 
     elif args.dataset_name == "teddybear":
         # each of these samples comes from a different sequence
