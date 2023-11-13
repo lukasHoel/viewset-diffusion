@@ -82,7 +82,7 @@ def main(args):
         # if args.N_clean == 2:
         #     samples_to_generate = [s // 2 for s in samples_to_generate]
 
-        samples_to_generate = torch.randperm(11100)[:args.n_samples]
+        samples_to_generate = torch.randperm(9290)[:args.n_samples]
 
         if torch.cuda.is_available():
             device = torch.device("cuda:{}".format(0))
