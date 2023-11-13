@@ -186,7 +186,7 @@ class Generator():
             N_noisy: number of noisy images in viewset
         """
         # comment the line below to avoid repeated dataset loading in quantitative eval
-        self.update_dataset(N_clean, split, cf_guidance)
+        # self.update_dataset(N_clean, split, cf_guidance)
 
         # assert N_noisy > 0, "Wrong function for deterministic reconstruction"
         # group samples into batches
