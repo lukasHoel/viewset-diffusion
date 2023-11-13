@@ -45,7 +45,7 @@ def main(cfg: DictConfig):
     if "minens" in cfg.model_path:
         length = 200
     elif "co3d" in cfg.model_path:
-        length = 4
+        length = 100
     else:
         length = len(generator.dataset)
 
