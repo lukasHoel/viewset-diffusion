@@ -6,7 +6,7 @@ render:
   n_pts_per_ray_fine: 32
   stratified_sampling: true
   volume_extent_world: 1.2
-  volume_size: 32
+  volume_size: 64
 
 data:
   dataset_type: co3d
