@@ -45,7 +45,7 @@ def main(cfg: DictConfig):
     if "minens" in cfg.model_path:
         length = 200
     elif "co3d" in cfg.model_path:
-        length = 100
+        length = 1
     else:
         length = len(generator.dataset)
 
@@ -64,7 +64,10 @@ def main(cfg: DictConfig):
             32 // (cfg.N_clean + cfg.N_noisy))
 
     if "co3d" in cfg.model_path:
-        length = 100
+        length = 1
+        cfg.N_noisy = 10
+        cfg.N_clean = 1
+        generator.cfg.optimization.batch_size = 32
         batches = num_to_groups(chunk_end - start_idx, 
             # a heuristic for how many images will fit on the GPU
             100)
@@ -89,14 +92,18 @@ def main(cfg: DictConfig):
             example_ids.append(generator.dataset.get_example_id(ex_idx))
             for a in all_psnrs, all_lpipses, all_ssims:
                 a.append([])
+        gt_data = None
         for sample_idx in range(cfg.eval.n_samples_per_ex):
+            sequential_offset = sample_idx * cfg.N_noisy
             generated_samples, gt_data = generator.generate_samples(
                                     [i for i in range(start_idx, start_idx+batch)],
                                     cfg.N_clean,
                                     cfg.N_noisy,
                                     split=split,
                                     use_testing_protocol=True,
-                                    force_white_background=False)
+                                    force_white_background=False,
+                                    sequential_offset=sequential_offset,
+                                    input_gt_data=gt_data)
             batch_generated_samples.append(generated_samples)
             psnrs, lpipses, ssims = \
                 metricator.measure_metrics(generated_samples, 
@@ -109,24 +116,24 @@ def main(cfg: DictConfig):
                 all_lpipses[ex_idx - chunk_start].append(lpipses[ex_idx - start_idx])
                 all_ssims[ex_idx - chunk_start].append(ssims[ex_idx - start_idx])
 
-            if sample_idx == 0 and cfg.save_output:
+            if cfg.save_output:
                 for ex_idx in range(start_idx, start_idx+batch):
                     example_id = generator.dataset.get_example_id(ex_idx)
                     out_dir_name = os.path.join(os.path.dirname(cfg.model_path), "test_quantitative", os.path.basename(os.path.dirname(cfg.model_path)), example_id)
                     assert cfg.N_noisy != 0, "N_noisy must be 0 for saving output"
                     if not os.path.isdir(out_dir_name):
                         os.makedirs(out_dir_name, exist_ok=True)
-                    N_test_start = cfg.N_clean + cfg.N_noisy
+                    N_test_start = cfg.N_clean
                     # save output frames
                     for rot_idx, output_frame in enumerate(generated_samples[ex_idx - start_idx][N_test_start:]):
                         tv_uils.save_image(output_frame,
-                            os.path.join(out_dir_name, "{}_out.png".format(rot_idx)),
+                            os.path.join(out_dir_name, f"{rot_idx + sequential_offset:04d}_out.png"),
                             padding=0,n_row=1)
 
                     # save input frames
                     input_frame = (gt_data['x_cond'][ex_idx - start_idx][0] + 1) * 0.5
                     tv_uils.save_image(input_frame,
-                        os.path.join(out_dir_name, "in.png"),
+                        os.path.join(out_dir_name, f"{sequential_offset:04d}_in.png"),
                         padding=0,n_row=1)
 
                     # save scene information

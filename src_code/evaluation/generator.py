@@ -177,7 +177,7 @@ class Generator():
 
     @torch.no_grad()
     def generate_samples(self, dataset_idxs, N_clean, N_noisy, split='val',
-                         cf_guidance = 0.0, use_testing_protocol = False, force_white_background = False):
+                         cf_guidance = 0.0, use_testing_protocol = False, force_white_background = False, sequential_offset=-1, input_gt_data=None):
         """
         Args:
             dataset_idxs: list of indexes of images in the dataset to use for 
@@ -199,6 +199,13 @@ class Generator():
         output_all_samples = None
         gt_data = {"validation_imgs": [], 
                    "x_cond": [],
+                   "new_x_cond": [],
+                   "R_cond": [],
+                   "t_cond": [],
+                   "cx_cond": [],
+                   "fl_cond": [],
+                   "bg_cond": [],
+                   "alpha_cond": [],
                    "test_imgs": []}
         for batch_size in batches:
             batch_idxs = dataset_idxs[batch_idx_start:batch_idx_start + batch_size]
@@ -221,17 +228,43 @@ class Generator():
                     batch_data[k] = []
             for ex_idx in batch_idxs:
                 if use_testing_protocol:
-                    ex_with_virtual_views = self.dataset.get_item_for_testing(ex_idx, N_noisy)
+                    ex_with_virtual_views = self.dataset.get_item_for_testing(ex_idx, N_noisy, sequential_offset)
                 else:
                     ex_with_virtual_views = self.dataset.get_item_with_virtual_views(ex_idx, N_noisy - 1)
                 for k, v in ex_with_virtual_views.items():
                     batch_data[k].append(v.unsqueeze(0).to(self.device))
             for k, v in batch_data.items():
                 batch_data[k] = torch.cat(v, dim=0)
+
+            if input_gt_data is not None:
+                batch_data['x_cond'] = input_gt_data["new_x_cond"] * 2 - 1
+                batch_data['training_imgs'][:, 0:1] = input_gt_data["new_x_cond"] * 2 - 1
+                batch_data['target_Rs'][:, 0:1] = input_gt_data["R_cond"]
+                batch_data['target_Ts'][:, 0:1] = input_gt_data["t_cond"]
+                batch_data['principal_points'][:, 0:1] = input_gt_data["cx_cond"]
+                batch_data['focal_lengths'][:, 0:1] = input_gt_data["fl_cond"]
+                batch_data['background'][:, 0:1] = input_gt_data["bg_cond"]
+                batch_data['alpha_channel'][:, 0:1] = input_gt_data["alpha_cond"]
+
             # generate samples
             for k in gt_data.keys():
-                if k in batch_data.keys() or use_testing_protocol:
+                if k == "new_x_cond":
+                    gt_data[k].append(batch_data["validation_imgs"])
+                elif k == "R_cond":
+                    gt_data[k].append(batch_data["target_Rs"][:, -1:])
+                elif k == "t_cond":
+                    gt_data[k].append(batch_data["target_Ts"][:, -1:])
+                elif k == "cx_cond":
+                    gt_data[k].append(batch_data["principal_points"][:, -1:])
+                elif k == "fl_cond":
+                    gt_data[k].append(batch_data["focal_lengths"][:, -1:])
+                elif k == "bg_cond":
+                    gt_data[k].append(batch_data["background"][:, -1:])
+                elif k == "alpha_cond":
+                    gt_data[k].append(batch_data["alpha_channel"][:, -1:])
+                elif k in batch_data.keys() or use_testing_protocol:
                     gt_data[k].append(batch_data[k])
+
             # The first N_clean images are conditioning images
             # The next N_noisy - 1 images are noisy virtual views
             # The last image is the target image
@@ -254,6 +287,8 @@ class Generator():
 
             batch_idx_start += batch_size
         for k in gt_data.keys():
+            # if k == "new_x_cond":
+            #     gt_data[k] = output_all_samples[:, -1:]
             if k in batch_data.keys() or use_testing_protocol:
                 gt_data[k] = torch.cat(gt_data[k], dim=0)
 

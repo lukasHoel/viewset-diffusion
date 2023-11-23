@@ -17,7 +17,8 @@ from . import (
 
 from . import augment_cameras, normalize_sequence
 
-from pytorch3d.implicitron.dataset.json_index_dataset_map_provider_v2 import JsonIndexDatasetMapProviderV2
+#from pytorch3d.implicitron.dataset.json_index_dataset_map_provider_v2 import JsonIndexDatasetMapProviderV2
+from .co3d_.json_index_dataset_map_provider_v2 import JsonIndexDatasetMapProviderV2
 from pytorch3d.implicitron.tools.config import expand_args_fields
 
 CO3D_DATASET_ROOT = "/cluster/balar/lhoellein/co3d" # Change this line to where CO3D is downloaded
@@ -100,7 +101,7 @@ class CO3DDataset():
             load_eval_batches=True,
             dataset_root=CO3D_DATASET_ROOT,
             dataset_JsonIndexDataset_args=DictConfig(
-                {"remove_empty_masks": False, "load_point_clouds": True}
+                {"remove_empty_masks": False, "load_point_clouds": True, "center_crop": True}
             ),
         ).get_dataset_map()
 
@@ -426,7 +427,7 @@ class CO3DDataset():
 
         return rgbs, training_imgs, validation_imgs, aug_img_in, val_pose_embeds, principal_points, focal_lengths, camera_Rs, camera_Ts, alpha_channel
 
-    def get_item_with_virtual_views(self, index, N_virtual_views):
+    def get_item_with_virtual_views(self, index, N_virtual_views, sequential_offset=-1):
         frame_idxs = self.fixed_frame_idxs[index]
         sequence_name = self.sequence_names[
             torch.searchsorted(self.sequence_starts_from, 
@@ -444,6 +445,10 @@ class CO3DDataset():
 
         all_view_idxs = [*frame_idxs[:-1], *virtual_view_idxs, frame_idxs[-1]]
         all_view_idxs = torch.tensor(all_view_idxs)
+
+        if sequential_offset >= 0:
+            all_view_idxs = torch.arange(start=0, end=len(all_view_idxs)).to(all_view_idxs) + sequential_offset
+
         attributes = self.get_attributes_selected_sequence_and_frames(sequence_name, all_view_idxs)
         attributes_rearranged = self.rearange_order_for_diffusion(attributes)
         if N_virtual_views == -1: # means that N_noisy was 0, i.e. deterministic inference
@@ -451,10 +456,10 @@ class CO3DDataset():
         
         return attributes_rearranged
 
-    def get_item_for_testing(self, index, N_noisy):
+    def get_item_for_testing(self, index, N_noisy, sequential_offset=-1):
 
         assert self.no_imgs_per_example == 2, "Expected conversion to single cond"
-        ex_with_virtual_views = self.get_item_with_virtual_views(index, N_noisy-1)
+        ex_with_virtual_views = self.get_item_with_virtual_views(index, N_noisy-1, sequential_offset)
         ex_with_virtual_views["test_imgs"] = ex_with_virtual_views["validation_imgs"]
         ex_with_virtual_views["test_Rs"] = ex_with_virtual_views["target_Rs"][-1:, ...]
         ex_with_virtual_views["test_Ts"] = ex_with_virtual_views["target_Ts"][-1:, ...]
